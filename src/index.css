@@ -1,0 +1,50 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+/* ── Navbar ── */
+nav {
+  background-color: #0077b6;
+  padding: 14px 30px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+/* ── Page wrapper ── */
+.page {
+  max-width: 800px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.page h1 {
+  font-size: 32px;
+  margin-bottom: 12px;
+  color: #0077b6;
+}
+
+.page p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #555;
+  text-align
+}
