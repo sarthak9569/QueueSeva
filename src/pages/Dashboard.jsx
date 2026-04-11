@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useQueue } from '../context/QueueContext';
 import styles from './Dashboard.module.css';
 import QueueStatusBar from '../components/QueueStatusBar';
@@ -9,19 +10,28 @@ import TokenGenerator from '../dashboard/TokenGenerator';
 import TokenHistory from '../dashboard/TokenHistory';
 import PrescriptionHistory from '../dashboard/PrescriptionHistory';
 import QueueUpdates from '../dashboard/QueueUpdates';
+import AddPrescription from '../dashboard/AddPrescription';
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const { stats } = useQueue();
   const [activeTab, setActiveTab] = useState('liveQueue');
 
-  // Define tabs array for easy mapping
-  const tabs = [
+  // Define tabs array based on user role
+  const isManagement = user?.role === 'management';
+
+  let tabs = [
     { id: 'liveQueue', label: 'Live Queue' },
-    { id: 'generateToken', label: 'Generate Token' },
-    { id: 'queueUpdates', label: 'Updates' },
-    { id: 'tokenHistory', label: 'Token History' },
-    { id: 'prescriptionHistory', label: 'Prescription History' }
+    { id: 'generateToken', label: isManagement ? 'Generate Token' : 'Get Token' },
+    { id: 'tokenHistory', label: isManagement ? 'Token History' : 'My Token History' },
+    { id: 'prescriptionHistory', label: isManagement ? 'Prescription History' : 'My Prescriptions' }
   ];
+
+  if (isManagement) {
+    // Management gets an additional update action
+    tabs.splice(2, 0, { id: 'queueUpdates', label: 'Updates' });
+    tabs.splice(3, 0, { id: 'addPrescription', label: 'Write Prescription' });
+  }
 
   // Render the appropriate component based on state
   const renderActiveSection = () => {
@@ -36,16 +46,22 @@ const Dashboard = () => {
         return <TokenHistory />;
       case 'prescriptionHistory':
         return <PrescriptionHistory />;
+      case 'addPrescription':
+        return <AddPrescription />;
       default:
         return <LiveQueue />;
     }
   };
 
+  // Derive a user name for personalization
+  const userName = user?.name || user?.email?.split('@')[0] || 'User';
+
   return (
     <div className={styles.dashboardContainer}>
+      <div className={styles.heroBanner}></div>
       <header className={styles.pageHeader}>
-        <h1>Dashboard Control Panel</h1>
-        <p>Manage queues, tokens, and patient flow</p>
+        <h1>{isManagement ? `Welcome back, ${userName}!` : `Hello, ${userName}!`}</h1>
+        <p>{isManagement ? 'Here\'s your management overview for today.' : 'View your active tickets and medical history.'}</p>
       </header>
 
       {/* Overview Stat Bar */}

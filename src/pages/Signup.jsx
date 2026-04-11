@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import styles from './LoginSignup.module.css';
 
 const Signup = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'patient' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -28,7 +28,7 @@ const Signup = () => {
     try {
       // Mock signup logic
       setTimeout(() => {
-        login('mock-jwt-token-newuser', { id: '2', role: 'admin', email: formData.email });
+        login('mock-jwt-token-newuser', { id: formData.role === 'management' ? 'admin-2' : '2', role: formData.role, email: formData.email, name: formData.name });
         navigate('/dashboard');
         setLoading(false);
       }, 1000);
@@ -40,7 +40,9 @@ const Signup = () => {
 
   return (
     <div className={styles.pageContainer}>
-      <div className={styles.authBox}>
+      <div className={styles.imageBanner}></div>
+      <div className={styles.formSection}>
+        <div className={styles.authBox}>
         <div className={styles.header}>
           <h2>Create Account</h2>
           <p>Join QueueSewa today</p>
@@ -97,6 +99,30 @@ const Signup = () => {
             />
           </div>
           
+          <div className={styles.inputGroup}>
+            <label>Sign Up As</label>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal' }}>
+                <input 
+                  type="radio" 
+                  name="role" 
+                  value="patient" 
+                  checked={formData.role === 'patient'} 
+                  onChange={handleChange} 
+                /> Patient
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal' }}>
+                <input 
+                  type="radio" 
+                  name="role" 
+                  value="management" 
+                  checked={formData.role === 'management'} 
+                  onChange={handleChange} 
+                /> Management
+              </label>
+            </div>
+          </div>
+          
           <button type="submit" disabled={loading} className={styles.authBtn}>
             {loading ? 'Creating account...' : 'Sign Up'}
           </button>
@@ -105,6 +131,7 @@ const Signup = () => {
         <div className={styles.footer}>
           <p>Already have an account? <Link to="/login">Sign in here</Link></p>
         </div>
+      </div>
       </div>
     </div>
   );

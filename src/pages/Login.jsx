@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import styles from './LoginSignup.module.css';
 
 const Login = () => {
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [credentials, setCredentials] = useState({ email: '', password: '', role: 'patient' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -23,7 +23,15 @@ const Login = () => {
       // Mock login since backend isn't ready
       setTimeout(() => {
         if (credentials.email && credentials.password) {
-          login('mock-jwt-token-12345', { id: '1', role: 'admin', email: credentials.email });
+          const defaultName = credentials.email.split('@')[0];
+          // capitalize the first letter, just to be nice
+          const formattedName = defaultName.charAt(0).toUpperCase() + defaultName.slice(1);
+          login('mock-jwt-token-12345', { 
+            id: credentials.role === 'management' ? 'admin-1' : '1', 
+            role: credentials.role, 
+            email: credentials.email,
+            name: formattedName
+          });
           navigate('/dashboard');
         } else {
           setError('Please fill in all fields.');
@@ -38,7 +46,9 @@ const Login = () => {
 
   return (
     <div className={styles.pageContainer}>
-      <div className={styles.authBox}>
+      <div className={styles.imageBanner}></div>
+      <div className={styles.formSection}>
+        <div className={styles.authBox}>
         <div className={styles.header}>
           <h2>Welcome Back</h2>
           <p>Sign in to QueueSewa</p>
@@ -73,6 +83,30 @@ const Login = () => {
             />
           </div>
           
+          <div className={styles.inputGroup}>
+            <label>Login As</label>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal' }}>
+                <input 
+                  type="radio" 
+                  name="role" 
+                  value="patient" 
+                  checked={credentials.role === 'patient'} 
+                  onChange={handleChange} 
+                /> Patient
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal' }}>
+                <input 
+                  type="radio" 
+                  name="role" 
+                  value="management" 
+                  checked={credentials.role === 'management'} 
+                  onChange={handleChange} 
+                /> Management
+              </label>
+            </div>
+          </div>
+          
           <button type="submit" disabled={loading} className={styles.authBtn}>
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
@@ -81,6 +115,7 @@ const Login = () => {
         <div className={styles.footer}>
           <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
         </div>
+      </div>
       </div>
     </div>
   );

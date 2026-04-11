@@ -1,29 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useQueue } from '../context/QueueContext';
+import { useAuth } from '../context/AuthContext';
 import styles from './DashboardSections.module.css';
 
 const PrescriptionHistory = () => {
-  const [prescriptions, setPrescriptions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { prescriptions } = useQueue();
+  const isManagement = user?.role === 'management';
 
-  useEffect(() => {
-    // Mock Data Fetch
-    setTimeout(() => {
-      setPrescriptions([
-        { id: 1, patientName: 'John Doe', tokenNumber: '101', date: Date.now() - 3600000, medicines: 'Paracetamol 500mg' },
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  // Filter based on role
+  const userPrescriptions = isManagement 
+    ? prescriptions 
+    : prescriptions.filter(rx => rx.userId === user?.id);
 
   return (
     <div className={styles.sectionContainer}>
-      <h2 className={styles.title}>Prescription History</h2>
+      <h2 className={styles.title}>{isManagement ? 'Overall Medical History' : 'Your Medical History'}</h2>
       
-      {loading ? (
-        <p>Loading prescriptions...</p>
-      ) : prescriptions.length > 0 ? (
+      {userPrescriptions.length > 0 ? (
         <div className={styles.gridContainer}>
-          {prescriptions.map(rx => (
+          {userPrescriptions.map(rx => (
             <div key={rx.id} style={{ border: '1px solid var(--border-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
               <h3>{rx.patientName}</h3>
               <p style={{ color: 'var(--text-secondary)' }}>Token: #{rx.tokenNumber}</p>
@@ -34,7 +29,12 @@ const PrescriptionHistory = () => {
         </div>
       ) : (
         <div className={styles.emptyState}>
-          No past prescriptions found.
+          <img src="/images/empty-state.png" alt="Empty Clipboard" className={styles.emptyImage} />
+          <p>
+            {isManagement 
+              ? "No past prescriptions found in the system." 
+              : `Hi ${user?.name || user?.email?.split('@')[0] || 'there'}, you don't have any prescriptions in your history yet.`}
+          </p>
         </div>
       )}
     </div>

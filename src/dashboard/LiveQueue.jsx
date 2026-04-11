@@ -1,12 +1,15 @@
 import { useQueue } from '../context/QueueContext';
+import { useAuth } from '../context/AuthContext';
 import styles from './DashboardSections.module.css';
 import TokenCard from '../components/TokenCard';
 
 const LiveQueue = () => {
   const { tokens } = useQueue();
+  const { user } = useAuth();
+  const isManagement = user?.role === 'management';
 
   // Filter tokens to only show ones currently live in the queue
-  const liveTokens = tokens.filter(t => t.status === 'SERVING' || t.status === 'WAITING');
+  let liveTokens = tokens.filter(t => t.status === 'SERVING' || t.status === 'WAITING');
 
   return (
     <div className={styles.sectionContainer}>
@@ -15,7 +18,12 @@ const LiveQueue = () => {
       {liveTokens.length > 0 ? (
         <div className={styles.gridContainer}>
           {liveTokens.map(token => (
-            <TokenCard key={token.id} token={token} isLive={token.status === 'SERVING'} />
+            <TokenCard 
+              key={token.id} 
+              token={token} 
+              isLive={token.status === 'SERVING'} 
+              isOwnToken={!isManagement && token.userId === user?.id}
+            />
           ))}
         </div>
       ) : (

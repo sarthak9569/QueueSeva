@@ -23,11 +23,17 @@ export const AuthProvider = ({ children }) => {
       if (!isMounted) return;
       
       if (token) {
-        setUser({ id: '1', role: 'admin' }); 
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        } else {
+          setUser({ id: '1', role: 'patient' }); // Safe fallback
+        }
         localStorage.setItem('token', token);
       } else {
         setUser(null);
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
       setLoading(false);
     };
@@ -43,12 +49,14 @@ export const AuthProvider = ({ children }) => {
     setToken(newToken);
     if (userData) {
       setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
     }
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
+    localStorage.removeItem('user');
   };
 
   const value = {

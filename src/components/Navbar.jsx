@@ -14,12 +14,27 @@ const Navbar = () => {
   return (
     <nav className={styles.navbar}>
       <div className={styles.logo}>
-        <Link to={token ? "/dashboard" : "/login"}>QueueSewa</Link>
+        <Link to="/">QueueSewa</Link>
       </div>
       <div className={styles.navLinks}>
+        <div style={{ display: 'flex', gap: '1rem', marginRight: 'auto', alignItems: 'center' }}>
+          <Link to="/" className={styles.linkBtn}>Home</Link>
+          <Link to="/about" className={styles.linkBtn}>About</Link>
+          <Link to="/contact" className={styles.linkBtn}>Contact</Link>
+          {token && <Link to="/dashboard" className={styles.linkBtn} style={{fontWeight: '600', color: 'var(--primary-color)'}}>Dashboard</Link>}
+        </div>
+        
         {token ? (
           <>
-            <span className={styles.userInfo}>Welcome, {user?.role || 'User'}</span>
+            <div className={styles.userProfile}>
+              <div className={styles.avatar}>
+                {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || (user?.role === 'management' ? 'M' : 'P')}
+              </div>
+              <div className={styles.userDetails}>
+                <span className={styles.userName}>{user?.name || user?.email?.split('@')[0] || 'User'}</span>
+                <span className={styles.userRole}>{user?.role || 'Patient'}</span>
+              </div>
+            </div>
             <button className={styles.logoutBtn} onClick={handleLogout}>Logout</button>
           </>
         ) : (

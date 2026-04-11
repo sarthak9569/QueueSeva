@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useQueue } from '../context/QueueContext';
+import { useAuth } from '../context/AuthContext';
 import styles from './DashboardSections.module.css';
 
 
 const TokenGenerator = () => {
   const { generateToken } = useQueue();
+  const { user } = useAuth();
+  const isManagement = user?.role === 'management';
+
   const [formData, setFormData] = useState({
-    patientName: '',
+    patientName: !isManagement ? (user?.name || user?.email || 'Self') : '',
     phoneNumber: '',
     department: 'General'
   });
@@ -52,6 +56,8 @@ const TokenGenerator = () => {
             value={formData.patientName} 
             onChange={handleChange} 
             required 
+            disabled={!isManagement}
+            style={!isManagement ? { backgroundColor: '#f0f0f0', color: '#666' } : {}}
           />
         </div>
         
