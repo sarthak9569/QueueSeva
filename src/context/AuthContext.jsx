@@ -1,69 +1,71 @@
 import { createContext, useState, useEffect, useContext } from 'react';
+import axiosInstance from '../api/axiosInstance';
 
 const AuthContext = createContext();
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   return useContext(AuthContext);
 };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
+  // Check for existing session on app load
   useEffect(() => {
-    // In a real app, you would validate the token with the backend here
-    let isMounted = true;
-    
-    const initAuth = async () => {
-      // Simulate API call using setTimeout wrapped in a promise
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
-      if (!isMounted) return;
-      
-      if (token) {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        } else {
-          setUser({ id: '1', role: 'patient' }); // Safe fallback
-        }
-        localStorage.setItem('token', token);
-      } else {
+    const checkAuth = async () => {
+      try {
+        const response = await axiosInstance.get('/auth/profile');
+        setUser(response.data);
+      } catch (error) {
         setUser(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    initAuth();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [token]);
+    checkAuth();
 
-  const login = (newToken, userData) => {
-    setToken(newToken);
-    if (userData) {
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+    // Listen for unauthorized events from axiosInstance
+    const handleUnauthorized = () => {
+       setUser(null);
+    };
+    window.addEventListener('app-unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('app-unauthorized', handleUnauthorized);
+  }, []);
+
+  const login = async (email, password) => {
+    const response = await axiosInstance.post('/auth/login', { email, password });
+    setUser(response.data);
+    return response.data;
+  };
+
+  const register = async (userData) => {
+    const response = await axiosInstance.post('/auth/register', userData);
+    setUser(response.data);
+    return response.data;
+  };
+
+  const logout = async () => {
+    try {
+      await axiosInstance.post('/auth/logout');
+    } finally {
+      setUser(null);
     }
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('user');
+  const updateProfile = async (userData) => {
+    const response = await axiosInstance.put('/auth/profile', userData);
+    setUser(response.data);
+    return response.data;
   };
 
   const value = {
     user,
-    token,
     login,
+    register,
     logout,
+    updateProfile,
     loading
   };
 

@@ -1,5 +1,3 @@
-import styles from './QueueStatusBar.module.css';
-
 const QueueStatusBar = ({ stats }) => {
   const defaultStats = {
     total: 0,
@@ -9,24 +7,23 @@ const QueueStatusBar = ({ stats }) => {
     ...stats
   };
 
+  const statConfig = [
+    { label: 'Total Volume', value: defaultStats.total, color: 'text-slate-600', bg: 'bg-slate-50' },
+    { label: 'In Waiting', value: defaultStats.waiting, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Now Serving', value: defaultStats.serving, color: 'text-primary', bg: 'bg-primary/5' },
+    { label: 'Session Ends', value: defaultStats.completed, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  ];
+
   return (
-    <div className={styles.container}>
-      <div className={styles.statBox}>
-        <span className={styles.label}>Total Tokens</span>
-        <span className={styles.value}>{defaultStats.total}</span>
-      </div>
-      <div className={`${styles.statBox} ${styles.waitingBox}`}>
-        <span className={styles.label}>Waiting</span>
-        <span className={styles.value}>{defaultStats.waiting}</span>
-      </div>
-      <div className={`${styles.statBox} ${styles.servingBox}`}>
-        <span className={styles.label}>Serving</span>
-        <span className={styles.value}>{defaultStats.serving}</span>
-      </div>
-      <div className={`${styles.statBox} ${styles.completedBox}`}>
-        <span className={styles.label}>Completed</span>
-        <span className={styles.value}>{defaultStats.completed}</span>
-      </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {statConfig.map((stat, i) => (
+        <div key={i} className={`premium-card p-4 flex flex-col items-center justify-center text-center group hover:scale-[1.02] transition-transform`}>
+          <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 mb-2">{stat.label}</span>
+          <div className={`h-10 px-4 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center text-xl font-black shadow-sm group-hover:shadow-md transition-shadow`}>
+            {stat.value}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
