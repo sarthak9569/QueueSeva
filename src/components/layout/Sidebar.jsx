@@ -22,7 +22,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-72 bg-white h-screen border-r border-slate-100 flex flex-col sticky top-0 overflow-y-auto">
+    <aside className="w-72 bg-white h-screen border-r border-slate-200 flex flex-col sticky top-0 overflow-y-auto">
       <div className="p-8">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
@@ -65,7 +65,7 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-6">
-        <div className="bg-gradient-to-br from-primary/10 to-secondary/10 p-5 rounded-2xl border border-primary/10">
+        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
           <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">Hospital Status</p>
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>

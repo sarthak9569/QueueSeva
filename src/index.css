@@ -9,7 +9,7 @@ html {
   --color-primary-dark: #023E8A;
   --color-primary-light: #48CAE4;
   --color-secondary: #00B4D8;
-  --color-background: #EFF6FF;
+  --color-background: #f8fafc;
   --color-surface: #ffffff;
   
   --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
@@ -27,7 +27,7 @@ html {
 
 @layer components {
   .premium-card {
-    @apply bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-premium hover:-translate-y-1 transition-all duration-300 p-6;
+    @apply bg-white border border-slate-300 rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 p-8;
   }
   
   .glass-card {
@@ -35,11 +35,11 @@ html {
   }
   
   .btn-primary {
-    @apply bg-primary text-white px-6 py-2.5 rounded-xl font-bold shadow-sm hover:bg-primary-dark active:scale-95 transition-all duration-200 flex items-center justify-center gap-2;
+    @apply bg-primary text-white px-6 py-2.5 rounded-xl font-bold shadow-md border border-primary-dark/10 hover:bg-primary-dark active:scale-95 transition-all duration-200 flex items-center justify-center gap-2;
   }
   
   .btn-secondary {
-    @apply bg-white text-primary border border-primary/10 px-6 py-2.5 rounded-xl font-bold shadow-sm hover:bg-slate-50 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2;
+    @apply bg-white text-primary border border-slate-200 px-6 py-2.5 rounded-xl font-bold shadow-sm hover:bg-slate-50 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2;
   }
   
   .btn-ghost {
@@ -47,7 +47,7 @@ html {
   }
   
   .input-field {
-    @apply w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-200;
+    @apply w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all duration-200 shadow-sm;
   }
 
   .text-label {
@@ -60,6 +60,10 @@ html {
 
   .text-secondary-label {
     @apply text-sm text-slate-500 font-medium;
+  }
+
+  .section-container {
+    @apply max-w-7xl mx-auto p-8;
   }
 }
 

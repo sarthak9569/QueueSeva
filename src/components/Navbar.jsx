@@ -31,7 +31,7 @@ const Navbar = () => {
       });
     }, options);
 
-    const sections = ['mission', 'features', 'how-it-works', 'support'];
+    const sections = ['features', 'how-it-works', 'support'];
     sections.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
@@ -41,7 +41,6 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const navLinks = [
-    { label: 'Mission', href: '#mission' },
     { label: 'Features', href: '#features' },
     { label: 'How it Works', href: '#how-it-works' },
     { label: 'Support', href: '#support' }

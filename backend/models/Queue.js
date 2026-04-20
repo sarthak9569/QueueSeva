@@ -31,6 +31,11 @@ const queueSchema = mongoose.Schema(
       enum: ['waiting', 'completed', 'cancelled'],
       default: 'waiting',
     },
+    scheduledDate: {
+      type: Date,
+      required: true,
+      default: () => new Date().setHours(0, 0, 0, 0),
+    },
     estimatedWaitMinutes: {
       type: Number,
       required: true,

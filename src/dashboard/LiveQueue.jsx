@@ -11,16 +11,17 @@ import {
   AlertCircle,
   BarChart2,
   Signal,
-  ArrowUpRight
+  ArrowUpRight,
+  ShieldCheck
 } from 'lucide-react';
 import axiosInstance from '../api/axiosInstance';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LiveQueue = () => {
-  const [data, setData] = useState({ departments: [], userToken: null });
+  const [data, setData] = useState({ departments: [], userToken: null, completedToday: 0, avgConsultationTime: 12 });
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
-  const prevWaitCount = useRef(null);
+  const prevPosition = useRef(null);
 
   const fetchData = async () => {
     try {
@@ -28,14 +29,14 @@ const LiveQueue = () => {
       setData(response.data);
       
       if (response.data.userToken) {
-        const myDept = response.data.departments.find(d => d.department === response.data.userToken.department);
-        if (myDept && myDept.count <= 3 && myDept.count > 0) {
-          if (prevWaitCount.current > 3 || prevWaitCount.current === null) {
+        const currentPos = response.data.userToken.position;
+        if (currentPos <= 2 && currentPos !== null) {
+          if (prevPosition.current > 2 || prevPosition.current === null) {
               setShowToast(true);
               setTimeout(() => setShowToast(false), 5000);
           }
         }
-        prevWaitCount.current = myDept?.count;
+        prevPosition.current = currentPos;
       }
     } catch (err) {
       console.error('Failed to poll queue data', err);
@@ -51,8 +52,7 @@ const LiveQueue = () => {
   }, []);
 
   const activeDept = data.userToken ? data.departments.find(d => d.department === data.userToken.department) : data.departments[0];
-  const peopleAhead = activeDept?.count || 0;
-  const estWait = data.userToken?.estimatedWaitMinutes || 0;
+  const peopleAhead = data.userToken ? data.userToken.position : (activeDept?.count || 0);
 
   return (
     <motion.div 
@@ -73,7 +73,7 @@ const LiveQueue = () => {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest leading-none mb-1 opacity-80">Urgent Alert</p>
-              <p className="font-black text-sm tracking-tight">Your turn is approaching — 3 tokens left!</p>
+              <p className="font-black text-sm tracking-tight">Your turn is approaching — {peopleAhead} patients ahead!</p>
             </div>
           </motion.div>
         )}
@@ -89,7 +89,7 @@ const LiveQueue = () => {
               </h3>
               <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-slate-400">
                  <MapPin size={14} className="text-primary" />
-                 {data.userToken ? data.userToken.department : 'No Token Selected'}
+                 {data.userToken ? data.userToken.department : 'No Active Appointment'}
               </div>
            </div>
            <div className="opacity-5 scale-150 absolute -right-4 -bottom-4 text-primary">
@@ -99,10 +99,10 @@ const LiveQueue = () => {
 
         <div className="premium-card bg-primary text-white border-none flex items-center justify-between group overflow-hidden">
            <div className="relative z-10">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-white/60 mb-2">People Ahead</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-white/60 mb-2">Patients Ahead</p>
               <h3 className="text-5xl font-black tracking-tighter leading-none">{peopleAhead}</h3>
               <p className="mt-4 text-xs font-bold text-white/80 flex items-center gap-1.5">
-                 <Users size={16} /> Patient Density Tracking
+                 <Users size={16} /> Live Queue Position
               </p>
            </div>
            <div className="h-16 w-16 rounded-2xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -112,23 +112,18 @@ const LiveQueue = () => {
 
         <div className="premium-card border-slate-100 flex items-center justify-between">
            <div>
-              <p className="text-label mb-2 text-primary">Estimated Wait</p>
+              <p className="text-label mb-2 text-primary">Clinic Status</p>
               <h3 className="text-5xl font-black text-slate-900 tracking-tighter">
-                ~ {estWait} <span className="text-xl text-slate-400">min</span>
+                Active
               </h3>
               <div className="mt-4 flex items-center gap-2">
-                 <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.max(20, 100 - (peopleAhead * 10))}%` }}
-                      className="h-full bg-primary"
-                    />
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calculated</span>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                   Please arrive 10-15 mins early
+                 </span>
               </div>
            </div>
            <div className="h-16 w-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400">
-              <Clock size={32} />
+              <Info size={32} />
            </div>
         </div>
       </div>
@@ -141,9 +136,6 @@ const LiveQueue = () => {
               <h3 className="text-primary-header">Departmental Load</h3>
               <p className="text-secondary-label">Live status across all clinical wings</p>
             </div>
-            <button className="text-primary text-xs font-black uppercase tracking-widest flex items-center gap-1 hover:gap-2 transition-all">
-               View Floor Map <ArrowUpRight size={14} />
-            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -158,7 +150,7 @@ const LiveQueue = () => {
                       )}
                     </h4>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                      {dept.load} Volume • {dept.currentToken || 'S-12'} Current
+                      {dept.load} Volume • {dept.currentToken || 'None'} Current
                     </p>
                   </div>
                   <Signal 
@@ -169,9 +161,9 @@ const LiveQueue = () => {
                 
                 <div className="space-y-2">
                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                      <span className="text-slate-400">Real-time Load</span>
+                      <span className="text-slate-400">Relative Load</span>
                       <span className={dept.load === 'High' ? 'text-red-500' : 'text-slate-600'}>
-                         {dept.load === 'High' ? '80%' : dept.load === 'Moderate' ? '50%' : '20%'}
+                         {dept.load === 'High' ? 'High' : dept.load === 'Moderate' ? 'Medium' : 'Optimal'}
                       </span>
                    </div>
                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -185,7 +177,6 @@ const LiveQueue = () => {
 
                 <div className="mt-4 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50 pt-3">
                    <span>Wait List: <span className="text-slate-800">{dept.count}</span></span>
-                   <span className="opacity-50 group-hover:opacity-100 transition-opacity flex items-center gap-1">Details <ArrowUpRight size={10} /></span>
                 </div>
               </div>
             ))}
@@ -193,14 +184,14 @@ const LiveQueue = () => {
 
           <div className="premium-card bg-primary/[0.02] border-primary/10 p-8 flex flex-col md:flex-row items-center justify-between group">
             <div className="max-w-md">
-                <h4 className="text-xl font-black text-slate-800 mb-2 tracking-tight">Want to relax?</h4>
-                <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">Scan the QR code to find our premium patient lounge with refreshments and digital entertainment while you wait.</p>
+                <h4 className="text-xl font-black text-slate-800 mb-2 tracking-tight">Need Assistance?</h4>
+                <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">Our clinical staff is available at the reception desk for any questions regarding your appointment or queue sequence.</p>
                 <button className="btn-secondary group-hover:border-primary/30 transition-all">
-                    Find Sanctuary Lounge
+                    View FAQ Guide
                 </button>
             </div>
-            <div className="bg-white p-4 rounded-2xl shadow-xl border border-slate-100 group-hover:scale-105 transition-transform duration-500">
-                <QrCode size={100} className="text-slate-800 opacity-80" />
+            <div className="h-24 w-24 rounded-3xl bg-white shadow-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500 border border-slate-100">
+                <Info size={40} />
             </div>
           </div>
         </div>
@@ -214,9 +205,9 @@ const LiveQueue = () => {
             </h4>
             <div className="space-y-6">
                {[
-                 { label: 'Total Patients Today', value: '482', icon: Users },
-                 { label: 'Avg Consultation Time', value: '12m', icon: Clock },
-                 { label: 'System Load Status', value: 'High', color: 'text-red-500', icon: Activity },
+                 { label: 'Total Served Today', value: data.completedToday, icon: Users },
+                 { label: 'Avg Wait Logic', value: `${data.avgConsultationTime}m`, icon: Clock },
+                 { label: 'System Health', value: 'Optimal', icon: ShieldCheck, color: 'text-emerald-500' },
                ].map((item, i) => (
                  <div key={i} className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
@@ -232,12 +223,11 @@ const LiveQueue = () => {
 
             <div className="mt-8 relative h-32 rounded-2xl overflow-hidden group">
                <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-secondary/80 mix-blend-multiply transition-opacity group-hover:opacity-100 opacity-90 z-10"></div>
-               <img src="https://images.unsplash.com/photo-1576091160550-217359f4ecf8?auto=format&fit=crop&q=80&w=400" className="w-full h-full object-cover transform transition-transform duration-1000 group-hover:scale-110" />
                <div className="absolute inset-0 z-20 p-5 flex flex-col justify-end">
-                  <p className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none mb-1">Clinic Live Stream</p>
+                  <p className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none mb-1">Queue Status</p>
                   <h4 className="text-white text-sm font-black tracking-tight flex items-center gap-2">
-                     Main Sanctuary Hall
-                     <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse shadow-glow"></div>
+                     Real-time Monitoring Active
+                     <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse shadow-glow"></div>
                   </h4>
                </div>
             </div>
@@ -249,7 +239,7 @@ const LiveQueue = () => {
                   <Wifi size={20} />
                </div>
                <div>
-                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">Sanctuary Mesh</p>
+                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">Clinic Connect</p>
                   <p className="text-sm font-black text-white tracking-tight">Complimentary Wi-Fi</p>
                </div>
              </div>
@@ -257,16 +247,9 @@ const LiveQueue = () => {
                 <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 group hover:bg-white/10 transition-all cursor-pointer">
                    <div>
                       <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest leading-none mb-1">SSID</p>
-                      <p className="text-xs font-bold text-white tracking-tight">QueueSeva_Sanctuary</p>
+                      <p className="text-xs font-bold text-white tracking-tight">QueueSeva_Public</p>
                    </div>
                    <Signal size={14} className="text-primary" />
-                </div>
-                <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 group hover:bg-white/10 transition-all cursor-pointer">
-                   <div>
-                      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest leading-none mb-1">Access Key</p>
-                      <p className="text-xs font-bold text-white tracking-tight">SevaHealth@2024</p>
-                   </div>
-                   <Clock size={14} className="text-white/30" />
                 </div>
              </div>
           </div>

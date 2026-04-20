@@ -157,8 +157,8 @@ const Profile = () => {
               ))}
            </div>
 
-           <div className="premium-card bg-slate-50 border-none p-8 flex items-center gap-6 group cursor-pointer overflow-hidden">
-              <div className="h-16 w-16 shrink-0 rounded-[1.5rem] bg-white shadow-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+           <div className="premium-card bg-slate-50 border-slate-200 p-8 flex items-center gap-6 group cursor-pointer overflow-hidden">
+              <div className="h-16 w-16 shrink-0 rounded-[1.5rem] bg-white shadow-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform border border-slate-100">
                  <ShieldCheck size={32} />
               </div>
               <div className="relative z-10">
@@ -194,14 +194,14 @@ const Profile = () => {
               </div>
            </div>
 
-           <div className="premium-card bg-slate-900 border-none text-white overflow-hidden relative group">
+           <div className="premium-card bg-slate-900 border-slate-800 text-white overflow-hidden relative group">
               <div className="absolute top-0 right-0 p-4 text-white opacity-10">
                  <Fingerprint size={80} />
               </div>
               <div className="relative z-10">
                  <h4 className="text-lg font-black tracking-tight mb-2">Digital Sanctuary Key</h4>
                  <p className="text-white/40 text-xs font-medium leading-relaxed mb-6">Your unique clinical identifier for secure offline token verification.</p>
-                 <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center justify-between group-hover:bg-white/10 transition-colors">
+                 <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center justify-between group-hover:bg-white/20 transition-colors">
                     <span className="text-xs font-black tracking-widest font-mono">X-442-9569-SAV</span>
                     <Fingerprint size={16} className="text-primary" />
                  </div>
@@ -219,6 +219,19 @@ const Profile = () => {
               </button>
            </div>
         </div>
+      </div>
+
+      {/* EMERGENCY BUTTON (STRICT POSITIONING) */}
+      <div className="fixed bottom-6 right-6 z-50">
+         <button className="bg-rose-500/90 text-white flex items-center gap-3 px-6 py-4 rounded-xl shadow-md hover:scale-105 transition-all group border border-rose-400/20 active:scale-95">
+            <div className="bg-white/20 p-1.5 rounded-lg">
+               <Activity size={20} />
+            </div>
+            <div className="text-left">
+               <p className="text-[10px] font-black uppercase tracking-widest opacity-80 leading-none">Emergency</p>
+               <p className="text-sm font-black tracking-tight">Request Help</p>
+            </div>
+         </button>
       </div>
     </motion.div>
   );

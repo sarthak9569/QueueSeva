@@ -99,7 +99,7 @@ const Register = () => {
                    <input
                      name="name"
                      type="text"
-                     placeholder="John Clinical Doe"
+                     placeholder="Full Name"
                      className="input-primary pl-12"
                      value={formData.name}
                      onChange={handleChange}
@@ -125,7 +125,7 @@ const Register = () => {
                </div>
 
                <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mobile Telemetry</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mobile Number</label>
                  <div className="relative group">
                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
                    <input
@@ -141,13 +141,13 @@ const Register = () => {
                </div>
 
                <div className="space-y-2 col-span-1 md:col-span-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Protocol</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email </label>
                  <div className="relative group">
                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
                    <input
                      name="email"
                      type="email"
-                     placeholder="jane@sanctuary.com"
+                     placeholder="username@domain.xyz"
                      className="input-primary pl-12"
                      value={formData.email}
                      onChange={handleChange}
@@ -157,7 +157,7 @@ const Register = () => {
                </div>
 
                <div className="space-y-2 col-span-1 md:col-span-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Access Password</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
                  <div className="relative group">
                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
                    <input
@@ -178,7 +178,7 @@ const Register = () => {
                  {formData.agreeToTerms && <ArrowRight size={14} className="rotate-[-45deg]" />}
               </div>
               <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-widest select-none">
-                I acknowledge the <span className="text-primary font-black hover:underline">Sanctuary Protocols</span> and <span className="text-primary font-black hover:underline">Clinical Data Ordinances</span>.
+                I acknowledge the <span className="text-primary font-black hover:underline">Terms</span> and <span className="text-primary font-black hover:underline">Conditions</span>.
               </p>
             </div>
 

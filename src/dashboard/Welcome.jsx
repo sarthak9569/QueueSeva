@@ -7,237 +7,254 @@ import {
   ArrowRight,
   TrendingUp,
   Clock,
-  Calendar
+  Calendar,
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Welcome = () => {
   const { user } = useAuth();
-  const [data, setData] = useState({ departments: [], userToken: null });
+  const [data, setData] = useState({ departments: [], userToken: null, completedToday: 0, avgConsultationTime: 12 });
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [newDate, setNewDate] = useState('');
+  const [rescheduleStatus, setRescheduleStatus] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      const response = await axiosInstance.get('/queue/live');
+      setData(response.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axiosInstance.get('/queue/live');
-        setData(response.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
     fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const totalWait = data.departments.reduce((acc, d) => acc + d.count, 0);
+
+  const handleReschedule = async () => {
+    if (!newDate) return;
+    try {
+      const response = await axiosInstance.post('/queue/reschedule', {
+        tokenId: data.userToken._id,
+        newDate
+      });
+      setRescheduleStatus({
+        type: 'success',
+        message: `Your new token number is ${response.data.newTokenNumber} for ${response.data.scheduledDate}.`
+      });
+      setIsRescheduling(false);
+      fetchData();
+    } catch (err) {
+      setRescheduleStatus({
+        type: 'error',
+        message: err.response?.data?.message || 'Failed to reschedule'
+      });
+    }
+  };
+
+  const getStatusConfig = (position) => {
+    if (position === 0) return { label: 'Please Proceed to Room', color: 'bg-emerald-500', text: 'text-white' };
+    if (position <= 2) return { label: 'Almost Your Turn', color: 'bg-amber-500', text: 'text-white' };
+    return { label: 'Waiting in Queue', color: 'bg-slate-200', text: 'text-slate-600' };
+  };
+
+  const status = data.userToken ? getStatusConfig(data.userToken.position) : null;
 
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="space-y-8 pb-12"
+      className="space-y-10 pb-12"
     >
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 leading-[1.1]">
+      {rescheduleStatus && (
+        <div className={`p-4 rounded-xl border flex items-center gap-3 ${rescheduleStatus.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
+          <Info size={20} />
+          <p className="font-bold text-sm">{rescheduleStatus.message}</p>
+          <button onClick={() => setRescheduleStatus(null)} className="ml-auto opacity-50 hover:opacity-100">✕</button>
+        </div>
+      )}
+
+      {/* ROW 1: Welcome + 2 Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="lg:col-span-6">
+          <h1 className="text-5xl font-black text-slate-900 leading-tight tracking-tighter">
             Welcome back, <br />
             <span className="text-primary">{user?.name}</span>
           </h1>
-          <p className="text-slate-500 mt-3 max-w-lg font-medium leading-relaxed">
-            The clinical sanctuary is prepared. Manage your patient flow with precision and tranquility today.
+          <p className="text-slate-600 mt-4 max-w-lg font-medium leading-relaxed text-lg">
+            Your patient dashboard is updated with real-time queue status and clinical availability.
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="glass-card flex items-center gap-3 px-5 py-3 border-primary/10">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Clinic Status</p>
-              <p className="text-sm font-bold text-slate-800 tracking-tight">System Optimal</p>
-            </div>
-          </div>
-          <div className="glass-card flex items-center gap-3 px-5 py-3 border-primary/10">
-            <div className="h-10 w-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
-              <Calendar size={20} />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Date Today</p>
-              <p className="text-sm font-bold text-slate-800 tracking-tight">
-                {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Quick Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { icon: Users, label: 'Live Queue', value: totalWait, color: 'primary', trend: '+12% from avg' },
-          { icon: CheckCircle, label: 'Completed Today', value: '42', color: 'emerald', trend: 'Target: 50' },
-          { icon: TrendingUp, label: 'Patient Satisfaction', value: '98%', color: 'blue', trend: 'Record High' },
-        ].map((stat, i) => (
-          <motion.div 
-            key={i}
-            whileHover={{ y: -5 }}
-            className="premium-card flex items-center justify-between"
-          >
-            <div className="flex items-center gap-4">
-              <div className={`h-14 w-14 rounded-2xl bg-${stat.color}-500/10 flex items-center justify-center text-${stat.color}-500 shadow-sm border border-${stat.color}-500/10`}>
-                <stat.icon size={28} />
+        <div className="lg:col-span-6 grid grid-cols-2 gap-6">
+          {[
+            { icon: Users, label: 'Live Queue', value: totalWait, color: 'primary' },
+            { icon: CheckCircle, label: 'Completed Today', value: data.completedToday, color: 'emerald' },
+          ].map((stat, i) => (
+            <div 
+              key={i}
+              className="premium-card flex flex-col gap-4 p-8 h-full justify-between"
+            >
+              <div className={`h-12 w-12 rounded-xl bg-${stat.color}-500/10 flex items-center justify-center text-${stat.color}-500 border border-${stat.color}-500/10`}>
+                <stat.icon size={24} />
               </div>
               <div>
-                <p className="text-label mb-1">{stat.label}</p>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</h3>
-                  <span className="text-[10px] font-bold text-emerald-500">{stat.trend}</span>
-                </div>
+                <p className="text-label mb-1 uppercase tracking-widest text-slate-400 font-black">{stat.label}</p>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</h3>
               </div>
             </div>
-          </motion.div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Main Content Areas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Active Token Card */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* ROW 2: Dominant Token Card */}
+      <div className="flex justify-start">
+        <div className="w-full lg:w-[75%]">
           {data.userToken ? (
-            <div className="premium-card bg-gradient-to-br from-primary to-primary-dark text-white border-none p-8 relative overflow-hidden group">
+            <motion.div 
+              whileHover={{ scale: 1.01 }}
+              className="premium-card bg-gradient-to-br from-primary to-primary-dark text-white border border-blue-200/20 p-12 relative overflow-hidden group shadow-2xl shadow-primary/30"
+            >
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                <Clock size={160} />
+                <Clock size={240} />
               </div>
-              <div className="relative z-10 flex justify-between items-start">
-                <div>
-                  <div className="bg-white/20 backdrop-blur-sm self-start px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6 inline-block">
-                    Current Active Token
+              <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-12">
+                <div className="space-y-8">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black tracking-widest uppercase inline-block">
+                      Current Active Token
+                    </div>
+                    <div className={`${status.color} ${status.text} px-4 py-2 rounded-full text-[10px] font-black tracking-widest uppercase inline-block shadow-sm`}>
+                      {status.label}
+                    </div>
                   </div>
-                  <h3 className="text-5xl font-black tracking-tighter mb-2">#{data.userToken.tokenNumber}</h3>
-                  <div className="flex items-center gap-2 opacity-80 font-medium">
-                     <Activity size={18} />
-                     <span>Wing B, 3rd Floor • Oncology Dept.</span>
+                  <h3 className="text-8xl font-black tracking-tighter leading-none">#{data.userToken.tokenNumber}</h3>
+                  <div className="flex items-center gap-4 opacity-90 font-bold bg-white/10 p-4 rounded-2xl border border-white/10 w-fit backdrop-blur-sm">
+                     <Activity size={24} />
+                     <span className="text-lg">{data.userToken.department}</span>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-white font-black text-2xl tracking-tight">
+                      {data.userToken.position} patients ahead of you
+                    </p>
+                    <p className="text-white/60 text-sm font-bold italic flex items-center gap-2">
+                      <Info size={16} /> Please arrive 10–15 minutes before your turn
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Estimated Wait</p>
-                  <p className="text-4xl font-black tracking-tight">{data.userToken.estimatedWaitMinutes} <span className="text-xl opacity-60">min</span></p>
+                <div className="md:text-right space-y-3 bg-white/10 p-8 rounded-3xl border border-white/10 backdrop-blur-md min-w-[200px]">
+                  <p className="text-white/60 text-[10px] font-black uppercase tracking-widest">Department Status</p>
+                  <p className="text-6xl font-black tracking-tight">Active</p>
                 </div>
               </div>
-              <div className="mt-12 flex gap-4 relative z-10">
-                <button className="bg-white text-primary px-8 py-3.5 rounded-2xl font-black text-sm shadow-xl hover:bg-slate-50 transition-all active:scale-95 leading-none">
-                   Start Consultation
-                </button>
-                <button className="bg-white/20 backdrop-blur-md text-white px-8 py-3.5 rounded-2xl font-black text-sm hover:bg-white/30 transition-all active:scale-95 leading-none">
-                   Reschedule
+              <div className="mt-12 flex flex-wrap gap-4 relative z-10">
+                <button 
+                  onClick={() => setIsRescheduling(true)}
+                  className="bg-white text-primary px-12 py-5 rounded-2xl font-black text-base shadow-2xl hover:bg-slate-50 transition-all active:scale-95"
+                >
+                   Reschedule Token
                 </button>
               </div>
-            </div>
+            </motion.div>
           ) : (
-            <div className="premium-card border-dashed border-2 bg-primary/5 flex flex-col items-center justify-center p-12 text-center group">
-               <div className="h-20 w-20 rounded-[2.5rem] bg-white shadow-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform duration-500">
-                  <Activity size={32} />
-               </div>
-               <h3 className="text-2xl font-black text-slate-800 mb-2">Ready for a checkup?</h3>
-               <p className="text-slate-500 max-w-xs mx-auto text-sm leading-relaxed mb-8">
-                 You don't have an active token for today. Select a clinical department to get started.
-               </p>
-               <button className="btn-primary px-10 py-4 shadow-lg shadow-primary/20">
-                  Generate Your Token <ArrowRight size={20} />
-               </button>
+            <div className="rounded-[2.5rem] p-1 bg-gradient-to-br from-blue-100 to-white shadow-xl">
+              <div className="bg-white border border-slate-300 rounded-[2.4rem] flex flex-col items-center justify-center p-20 text-center group shadow-sm">
+                <div className="h-28 w-28 rounded-[2.5rem] bg-blue-50/50 shadow-sm flex items-center justify-center text-primary mb-8 group-hover:scale-110 transition-transform duration-500 border border-blue-100">
+                    <div className="h-20 w-20 rounded-3xl bg-blue-100 flex items-center justify-center">
+                        <Activity size={48} />
+                    </div>
+                </div>
+                <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Ready for a checkup?</h3>
+                <p className="text-slate-500 max-w-sm mx-auto text-xl leading-relaxed mb-12 font-medium">
+                  You don't have an active token for today. Select a clinical department to begin your journey.
+                </p>
+                <button className="btn-primary px-16 py-6 shadow-xl shadow-primary/30 text-xl hover:shadow-2xl transition-all font-black rounded-2xl">
+                    Generate Token <ArrowRight size={28} className="ml-2" />
+                </button>
+              </div>
             </div>
           )}
-
-          {/* Sanctuary Banner */}
-          <div className="premium-card p-0 flex flex-col md:flex-row overflow-hidden group">
-            <div className="flex-1 p-8">
-              <span className="text-[10px] uppercase font-black text-primary tracking-widest mb-3 inline-block">Enhanced Sanctuary Experience</span>
-              <h4 className="text-2xl font-black text-slate-800 mb-3 tracking-tight">Patient Atmosphere Control</h4>
-              <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
-                QueueSeva's Digital Sanctuary mode is active. Our ambient display technology is currently reducing patient perceived wait time by up to <span className="text-primary font-black">24%</span> through targeted visual harmonics.
-              </p>
-              <div className="flex gap-6">
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-200"></div> 
-                  Active Visuals
-                </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-200"></div> 
-                  Low Latency Sync
-                </div>
-              </div>
-            </div>
-            <div className="w-full md:w-80 bg-slate-100 relative overflow-hidden">
-               <div className="absolute inset-0 bg-primary/10 mix-blend-overlay group-hover:bg-primary/0 transition-all duration-700"></div>
-               <img 
-                 src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=600" 
-                 className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-1000" 
-                 alt="Hospital Interior"
-               />
-            </div>
-          </div>
         </div>
+      </div>
 
-        {/* Sidebar Panel - Clinic Overview */}
-        <div className="space-y-6">
-          <div className="premium-card">
-            <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-50 pb-4">
-              Real-time Analytics
-            </h4>
-            <div className="space-y-6">
-               {[
-                 { label: 'Avg Consultation Time', value: '14m', sub: 'Optimal Range' },
-                 { label: 'Current System Load', value: 'High', sub: '8 departments active', color: 'text-red-500' },
-                 { label: 'Patient Density', value: '4.2', sub: 'Patients / sq.m' },
-               ].map((item, i) => (
-                 <div key={i} className="flex justify-between items-start">
-                    <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">{item.label}</p>
-                      <p className="text-[10px] font-bold text-slate-400">{item.sub}</p>
-                    </div>
-                    <span className={`text-xl font-black tracking-tight ${item.color || 'text-slate-800'}`}>{item.value}</span>
-                 </div>
-               ))}
-            </div>
-            <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-               <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resource Usage</span>
-                  <span className="text-xs font-bold text-primary">82%</span>
-               </div>
-               <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: '82%' }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                    className="h-full bg-primary"
-                  ></motion.div>
-               </div>
-            </div>
-          </div>
-
-          <div className="premium-card bg-slate-900 border-none relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-20 text-white">
-              <TrendingUp size={80} />
-            </div>
-            <div className="relative z-10">
-              <h4 className="text-white text-lg font-black tracking-tight mb-2">Daily Peak Tracking</h4>
-              <p className="text-white/50 text-xs font-medium leading-relaxed mb-6">
-                Monitor system-wide activity peaks to optimize your clinic visit.
-              </p>
-              <div className="h-24 flex items-end gap-1.5">
-                {[40, 60, 45, 90, 65, 80, 50, 70, 85].map((h, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ height: 0 }}
-                    animate={{ height: `${h}%` }}
-                    transition={{ duration: 0.8, delay: i * 0.1 }}
-                    className="flex-1 bg-white/20 rounded-t-lg group-hover:bg-primary transition-colors cursor-pointer"
-                  />
-                ))}
+      <AnimatePresence>
+        {isRescheduling && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/60">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white rounded-[2.5rem] p-10 max-w-md w-full shadow-2xl border border-slate-200 space-y-8"
+            >
+              <div className="flex justify-between items-start">
+                <div className="h-16 w-16 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100">
+                  <AlertTriangle size={32} />
+                </div>
+                <button onClick={() => setIsRescheduling(false)} className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">✕</button>
               </div>
+              <div className="space-y-3">
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">Reschedule Token</h3>
+                <p className="text-slate-500 text-base font-bold leading-relaxed">
+                  Your current token will be cancelled and replaced with a new token for the selected date.
+                </p>
+              </div>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Select New Date</label>
+                  <input 
+                    type="date" 
+                    min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                    value={newDate}
+                    onChange={(e) => setNewDate(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 font-black text-slate-900 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
+                  />
+                </div>
+                <button 
+                  onClick={handleReschedule}
+                  className="w-full btn-primary py-5 text-lg font-black shadow-xl shadow-primary/20 rounded-2xl"
+                >
+                  Confirm Reschedule
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ROW 3: ONE Minimal Analytics Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-12">
+          <div className="premium-card flex flex-col md:flex-row items-center justify-between gap-10 p-10 border-slate-300 shadow-md">
+            <div className="space-y-3">
+              <h4 className="text-2xl font-black text-slate-900 tracking-tight">Clinic Status Overview</h4>
+              <p className="text-slate-500 text-base font-bold">Real-time system health and clinical performance monitoring.</p>
+            </div>
+            
+            <div className="flex flex-wrap gap-8 items-center">
+              {[
+                { label: 'Today Served', value: data.completedToday, icon: CheckCircle },
+                { label: 'System Load', value: totalWait > 20 ? 'High' : 'Optimal', icon: ShieldCheck, color: totalWait > 20 ? 'text-amber-500' : 'text-emerald-500' },
+                { label: 'Avg Wait', value: `${data.avgConsultationTime}m`, icon: Clock },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-5 px-8 py-6 bg-slate-50 rounded-3xl border border-slate-100 hover:border-slate-200 transition-colors">
+                  <div className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-400">
+                    <item.icon size={24} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{item.label}</p>
+                    <p className={`text-2xl font-black tracking-tight ${item.color || 'text-slate-900'}`}>{item.value}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
