@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
-import { 
-  Users, 
-  CheckCircle, 
-  Activity, 
+import { useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+import {
+  Users,
+  CheckCircle,
+  Activity,
   ShieldCheck,
   ArrowRight,
   TrendingUp,
@@ -17,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const Welcome = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState({ departments: [], userToken: null, completedToday: 0, avgConsultationTime: 12 });
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [newDate, setNewDate] = useState('');
@@ -69,7 +72,7 @@ const Welcome = () => {
   const status = data.userToken ? getStatusConfig(data.userToken.position) : null;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -95,14 +98,14 @@ const Welcome = () => {
           </p>
         </div>
 
-        <div className="lg:col-span-6 grid grid-cols-2 gap-6">
+        <div className="lg:col-span-6 grid grid-cols-2 gap-8">
           {[
             { icon: Users, label: 'Live Queue', value: totalWait, color: 'primary' },
             { icon: CheckCircle, label: 'Completed Today', value: data.completedToday, color: 'emerald' },
           ].map((stat, i) => (
-            <div 
+            <div
               key={i}
-              className="premium-card flex flex-col gap-4 p-8 h-full justify-between"
+              className="bg-white border border-slate-300 shadow-md rounded-2xl flex flex-col gap-4 p-8 h-full justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
             >
               <div className={`h-12 w-12 rounded-xl bg-${stat.color}-500/10 flex items-center justify-center text-${stat.color}-500 border border-${stat.color}-500/10`}>
                 <stat.icon size={24} />
@@ -120,9 +123,9 @@ const Welcome = () => {
       <div className="flex justify-start">
         <div className="w-full lg:w-[75%]">
           {data.userToken ? (
-            <motion.div 
+            <motion.div
               whileHover={{ scale: 1.01 }}
-              className="premium-card bg-gradient-to-br from-primary to-primary-dark text-white border border-blue-200/20 p-12 relative overflow-hidden group shadow-2xl shadow-primary/30"
+              className="bg-gradient-to-br from-primary to-primary-dark text-white border border-blue-200 p-8 relative overflow-hidden group shadow-lg rounded-2xl transition-all"
             >
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
                 <Clock size={240} />
@@ -139,8 +142,8 @@ const Welcome = () => {
                   </div>
                   <h3 className="text-8xl font-black tracking-tighter leading-none">#{data.userToken.tokenNumber}</h3>
                   <div className="flex items-center gap-4 opacity-90 font-bold bg-white/10 p-4 rounded-2xl border border-white/10 w-fit backdrop-blur-sm">
-                     <Activity size={24} />
-                     <span className="text-lg">{data.userToken.department}</span>
+                    <Activity size={24} />
+                    <span className="text-lg">{data.userToken.department}</span>
                   </div>
                   <div className="space-y-2">
                     <p className="text-white font-black text-2xl tracking-tight">
@@ -157,28 +160,29 @@ const Welcome = () => {
                 </div>
               </div>
               <div className="mt-12 flex flex-wrap gap-4 relative z-10">
-                <button 
+                <button
                   onClick={() => setIsRescheduling(true)}
                   className="bg-white text-primary px-12 py-5 rounded-2xl font-black text-base shadow-2xl hover:bg-slate-50 transition-all active:scale-95"
                 >
-                   Reschedule Token
+                  Reschedule Token
                 </button>
               </div>
             </motion.div>
           ) : (
-            <div className="rounded-[2.5rem] p-1 bg-gradient-to-br from-blue-100 to-white shadow-xl">
-              <div className="bg-white border border-slate-300 rounded-[2.4rem] flex flex-col items-center justify-center p-20 text-center group shadow-sm">
-                <div className="h-28 w-28 rounded-[2.5rem] bg-blue-50/50 shadow-sm flex items-center justify-center text-primary mb-8 group-hover:scale-110 transition-transform duration-500 border border-blue-100">
-                    <div className="h-20 w-20 rounded-3xl bg-blue-100 flex items-center justify-center">
-                        <Activity size={48} />
-                    </div>
+            <div className="rounded-2xl p-1 bg-gradient-to-br from-blue-50 to-white shadow-md">
+              <div className="bg-white border border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-center group shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5">
+                <div className="h-32 w-32 rounded-xl bg-blue-100 flex items-center justify-center text-primary mb-8 group-hover:scale-110 transition-transform duration-500 border border-blue-200 p-4">
+                  <Activity size={56} />
                 </div>
                 <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Ready for a checkup?</h3>
                 <p className="text-slate-500 max-w-sm mx-auto text-xl leading-relaxed mb-12 font-medium">
                   You don't have an active token for today. Select a clinical department to begin your journey.
                 </p>
-                <button className="btn-primary px-16 py-6 shadow-xl shadow-primary/30 text-xl hover:shadow-2xl transition-all font-black rounded-2xl">
-                    Generate Token <ArrowRight size={28} className="ml-2" />
+                <button
+                  onClick={() => navigate('/dashboard/generate')}
+                  className="btn-primary px-16 py-6 shadow-lg hover:shadow-xl transition-all font-black rounded-2xl text-xl"
+                >
+                  Generate Token <ArrowRight size={28} className="ml-2" />
                 </button>
               </div>
             </div>
@@ -189,7 +193,7 @@ const Welcome = () => {
       <AnimatePresence>
         {isRescheduling && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/60">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -210,15 +214,15 @@ const Welcome = () => {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Select New Date</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 font-black text-slate-900 outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
                   />
                 </div>
-                <button 
+                <button
                   onClick={handleReschedule}
                   className="w-full btn-primary py-5 text-lg font-black shadow-xl shadow-primary/20 rounded-2xl"
                 >
@@ -233,12 +237,12 @@ const Welcome = () => {
       {/* ROW 3: ONE Minimal Analytics Card */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-12">
-          <div className="premium-card flex flex-col md:flex-row items-center justify-between gap-10 p-10 border-slate-300 shadow-md">
+          <div className="bg-white border border-slate-300 shadow-md rounded-2xl flex flex-col md:flex-row items-center justify-between gap-10 p-10 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
             <div className="space-y-3">
               <h4 className="text-2xl font-black text-slate-900 tracking-tight">Clinic Status Overview</h4>
               <p className="text-slate-500 text-base font-bold">Real-time system health and clinical performance monitoring.</p>
             </div>
-            
+
             <div className="flex flex-wrap gap-8 items-center">
               {[
                 { label: 'Today Served', value: data.completedToday, icon: CheckCircle },

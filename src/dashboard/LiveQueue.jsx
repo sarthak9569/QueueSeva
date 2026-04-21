@@ -139,47 +139,54 @@ const LiveQueue = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {data.departments.map((dept) => (
-              <div key={dept.department} className={`premium-card p-5 group ${data.userToken?.department === dept.department ? 'border-primary/30 ring-1 ring-primary/10 bg-primary/[0.01]' : ''}`}>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="font-black text-slate-800 tracking-tight flex items-center gap-2">
-                      {dept.department}
-                      {data.userToken?.department === dept.department && (
-                        <span className="bg-primary text-white text-[8px] px-1.5 py-0.5 rounded-full uppercase tracking-tighter font-black">My Dept</span>
-                      )}
-                    </h4>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                      {dept.load} Volume • {dept.currentToken || 'None'} Current
-                    </p>
-                  </div>
-                  <Signal 
-                    size={16} 
-                    className={dept.load === 'High' ? 'text-red-500' : dept.load === 'Moderate' ? 'text-amber-500' : 'text-emerald-500'} 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                      <span className="text-slate-400">Relative Load</span>
-                      <span className={dept.load === 'High' ? 'text-red-500' : 'text-slate-600'}>
-                         {dept.load === 'High' ? 'High' : dept.load === 'Moderate' ? 'Medium' : 'Optimal'}
-                      </span>
-                   </div>
-                   <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <motion.div 
-                         initial={{ width: 0 }}
-                         animate={{ width: dept.load === 'High' ? '80%' : dept.load === 'Moderate' ? '50%' : '20%' }}
-                         className={`h-full ${dept.load === 'High' ? 'bg-red-500' : dept.load === 'Moderate' ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                      />
-                   </div>
-                </div>
+            {data.departments.map((dept) => {
+              const loadPercentage = Math.min((dept.count / 20) * 100, 100);
+              const getLoadColor = (p) => p < 33 ? 'bg-emerald-500' : p <= 66 ? 'bg-amber-500' : 'bg-red-500';
+              const getLoadText = (p) => p < 33 ? 'Optimal' : p <= 66 ? 'Moderate' : 'High';
+              const getTextColor = (p) => p < 33 ? 'text-emerald-500' : p <= 66 ? 'text-amber-500' : 'text-red-500';
 
-                <div className="mt-4 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50 pt-3">
-                   <span>Wait List: <span className="text-slate-800">{dept.count}</span></span>
+              return (
+                <div key={dept.department} className={`bg-white border border-slate-300 shadow-md rounded-2xl p-5 group transition-all hover:shadow-lg hover:-translate-y-0.5 ${data.userToken?.department === dept.department ? 'border-primary/40 ring-1 ring-primary/10 bg-primary/[0.01]' : ''}`}>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="font-black text-slate-800 tracking-tight flex items-center gap-2">
+                        {dept.department}
+                        {data.userToken?.department === dept.department && (
+                          <span className="bg-primary text-white text-[8px] px-1.5 py-0.5 rounded-full uppercase tracking-tighter font-black">My Dept</span>
+                        )}
+                      </h4>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                        Current token: <span className="text-slate-900">{dept.currentToken || 'N/A'}</span>
+                      </p>
+                    </div>
+                    <Signal 
+                      size={16} 
+                      className={getTextColor(loadPercentage)} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-slate-400">Relative Load</span>
+                        <span className={getTextColor(loadPercentage)}>
+                          {getLoadText(loadPercentage)}
+                        </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${loadPercentage}%` }}
+                          className={`h-full ${getLoadColor(loadPercentage)}`}
+                        />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50 pt-3">
+                    <span>{dept.count} patients waiting</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="premium-card bg-primary/[0.02] border-primary/10 p-8 flex flex-col md:flex-row items-center justify-between group">
@@ -233,26 +240,6 @@ const LiveQueue = () => {
             </div>
           </div>
 
-          <div className="premium-card bg-slate-900 border-none">
-             <div className="flex items-center gap-3 mb-6">
-               <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
-                  <Wifi size={20} />
-               </div>
-               <div>
-                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">Clinic Connect</p>
-                  <p className="text-sm font-black text-white tracking-tight">Complimentary Wi-Fi</p>
-               </div>
-             </div>
-             <div className="space-y-4">
-                <div className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 group hover:bg-white/10 transition-all cursor-pointer">
-                   <div>
-                      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest leading-none mb-1">SSID</p>
-                      <p className="text-xs font-bold text-white tracking-tight">QueueSeva_Public</p>
-                   </div>
-                   <Signal size={14} className="text-primary" />
-                </div>
-             </div>
-          </div>
         </div>
       </div>
     </motion.div>
