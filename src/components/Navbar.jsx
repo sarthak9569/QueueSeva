@@ -1,12 +1,14 @@
-import { Heart, Search, LogOut } from 'lucide-react';
+import { Heart, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState('');
 
   const handleLogout = async () => {
@@ -41,9 +43,9 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const navLinks = [
-    { label: 'Features', href: '#features' },
-    { label: 'How it Works', href: '#how-it-works' },
-    { label: 'Support', href: '#support' }
+    { label: t('navbar.features'), href: '#features' },
+    { label: t('navbar.howItWorks'), href: '#how-it-works' },
+    { label: t('navbar.support'), href: '#support' }
   ];
 
   return (
@@ -65,8 +67,8 @@ const Navbar = () => {
               href={item.href} 
               className={`text-sm font-semibold transition-all duration-300 relative py-1
                 ${activeSection === item.href.replace('#', '') 
-                  ? 'text-primary' 
-                  : 'text-slate-600 hover:text-primary'}`}
+                   ? 'text-primary' 
+                   : 'text-slate-600 hover:text-primary'}`}
             >
               {item.label}
               {activeSection === item.href.replace('#', '') && (
@@ -82,7 +84,7 @@ const Navbar = () => {
             <div className="flex items-center gap-4">
               <Link to="/dashboard">
                 <button className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md hover:scale-105 transition-all">
-                  Dashboard
+                  {t('navbar.dashboard')}
                 </button>
               </Link>
               <button 
@@ -96,11 +98,11 @@ const Navbar = () => {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/login" className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-primary transition-colors">
-                Login
+                {t('navbar.login')}
               </Link>
               <Link to="/signup">
                 <button className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md hover:scale-105 transition-all">
-                  Get Started
+                  {t('navbar.getStarted')}
                 </button>
               </Link>
             </div>

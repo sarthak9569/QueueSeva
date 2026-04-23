@@ -28,7 +28,7 @@ const queueSchema = mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ['waiting', 'completed', 'cancelled'],
+      enum: ['waiting', 'completed', 'cancelled', 'expired', 'archived'],
       default: 'waiting',
     },
     scheduledDate: {
@@ -41,11 +41,17 @@ const queueSchema = mongoose.Schema(
       required: true,
       default: 15,
     },
+    estimatedArrivalTime: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Add index for optimized queue management and auto-expiry cleanup
+queueSchema.index({ status: 1, scheduledDate: 1, createdAt: 1 });
 
 const Queue = mongoose.model('Queue', queueSchema);
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { 
   Search, 
   Eye, 
@@ -10,41 +11,51 @@ import {
   XCircle,
   TrendingUp,
   History,
-  Download
+  Download,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import axiosInstance from '../api/axiosInstance';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const TokenHistory = () => {
+  const { searchQuery } = useOutletContext();
   const [history, setHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [confirmRemoveId, setConfirmRemoveId] = useState(null);
+  const [removeLoading, setRemoveLoading] = useState(false);
   const itemsPerPage = 8;
 
+  const fetchHistory = async () => {
+    try {
+      const response = await axiosInstance.get('/queue/history');
+      setHistory(response.data);
+      setFilteredHistory(response.data);
+    } catch (err) {
+      console.error('Failed to fetch history', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await axiosInstance.get('/queue/history');
-        setHistory(response.data);
-        setFilteredHistory(response.data);
-      } catch (err) {
-        console.error('Failed to fetch history', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchHistory();
   }, []);
 
   useEffect(() => {
+    window.addEventListener('queue-updated', fetchHistory);
+    return () => window.removeEventListener('queue-updated', fetchHistory);
+  }, []);
+
+  useEffect(() => {
     let result = history;
-    if (searchTerm) {
+    if (searchQuery) {
       result = result.filter(item => 
-        item.tokenNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.department.toLowerCase().includes(searchTerm.toLowerCase())
+        item.tokenNumber.toLowerCase().includes(searchQuery) ||
+        item.department.toLowerCase().includes(searchQuery)
       );
     }
     if (statusFilter !== 'All') {
@@ -52,7 +63,27 @@ const TokenHistory = () => {
     }
     setFilteredHistory(result);
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, history]);
+  }, [searchQuery, statusFilter, history]);
+
+  const handleRemove = async () => {
+    if (!confirmRemoveId) return;
+    setRemoveLoading(true);
+    try {
+      await axiosInstance.post('/queue/archive', { tokenId: confirmRemoveId });
+      // Remove from state instantly
+      const updatedHistory = history.filter(item => item._id !== confirmRemoveId);
+      setHistory(updatedHistory);
+      setConfirmRemoveId(null);
+      // Dispatch success toast
+      window.dispatchEvent(new CustomEvent('app-toast', { 
+        detail: { message: 'Token removed from history', type: 'success' } 
+      }));
+    } catch (err) {
+      console.error('Failed to remove token', err);
+    } finally {
+      setRemoveLoading(false);
+    }
+  };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -82,6 +113,13 @@ const TokenHistory = () => {
             <span>Cancelled</span>
           </div>
         );
+      case 'expired':
+        return (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-300">
+            <Clock size={12} />
+            <span>Expired</span>
+          </div>
+        );
       default:
         return <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-[10px] font-black">{status}</span>;
     }
@@ -108,17 +146,6 @@ const TokenHistory = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
-          <div className="relative group w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
-            <input
-              type="text"
-              placeholder="Search Token No. or Department"
-              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-all shadow-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
           <div className="relative w-full md:w-auto">
              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
              <select 
@@ -130,6 +157,7 @@ const TokenHistory = () => {
                <option value="Waiting">Waiting</option>
                <option value="Completed">Completed</option>
                <option value="Cancelled">Cancelled</option>
+               <option value="Expired">Expired</option>
              </select>
           </div>
         </div>
@@ -149,34 +177,53 @@ const TokenHistory = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {currentItems.map((item) => (
-                <tr key={item._id} className="group hover:bg-slate-50 transition-colors">
-                  <td className="px-8 py-5">
-                    <span className="text-sm font-black text-primary tracking-tight">#{item.tokenNumber}</span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className="text-sm font-bold text-slate-700">{item.department}</span>
-                  </td>
-                  <td className="px-8 py-5 text-center">
-                    <span className="text-xs font-bold text-slate-500">
-                      {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 text-center">
-                    <span className="text-xs font-bold text-slate-500">
-                      {new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 flex justify-center">
-                    {getStatusBadge(item.status)}
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <button className="h-9 w-9 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/30 transition-all shadow-sm group-hover:bg-primary/5 active:scale-90">
-                      <Eye size={18} />
-                    </button>
+              {currentItems.length > 0 ? (
+                currentItems.map((item) => (
+                  <tr key={item._id} className="group hover:bg-slate-50 transition-colors">
+                    <td className="px-8 py-5">
+                      <span className="text-sm font-black text-primary tracking-tight">#{item.tokenNumber}</span>
+                    </td>
+                    <td className="px-8 py-5">
+                      <span className="text-sm font-bold text-slate-700">{item.department}</span>
+                    </td>
+                    <td className="px-8 py-5 text-center">
+                      <span className="text-xs font-bold text-slate-500">
+                        {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-center">
+                      <span className="text-xs font-bold text-slate-500">
+                        {new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 flex justify-center">
+                      {getStatusBadge(item.status)}
+                    </td>
+                    <td className="px-8 py-5 text-right flex justify-end gap-2">
+                      <button className="h-9 w-9 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/30 transition-all shadow-sm group-hover:bg-primary/5 active:scale-90">
+                        <Eye size={18} />
+                      </button>
+                      <button 
+                        onClick={() => setConfirmRemoveId(item._id)}
+                        className="h-9 w-9 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-red-500 hover:text-red-600 hover:border-red-200 transition-all shadow-sm group-hover:bg-red-50 active:scale-90"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="px-8 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300">
+                        <Search size={24} />
+                      </div>
+                      <p className="text-sm font-bold text-slate-500 tracking-tight">No tokens match your search</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -221,6 +268,52 @@ const TokenHistory = () => {
           </div>
         ))}
       </div>
+      <AnimatePresence>
+        {confirmRemoveId && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/60">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white rounded-[2.5rem] p-10 max-w-md w-full shadow-2xl border border-slate-200 space-y-8"
+            >
+              <div className="flex justify-between items-start">
+                <div className="h-16 w-16 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center border border-red-100">
+                  <AlertTriangle size={32} />
+                </div>
+                <button 
+                  onClick={() => setConfirmRemoveId(null)} 
+                  className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">Remove from History?</h3>
+                <p className="text-slate-500 text-base font-bold leading-relaxed">
+                  Are you sure you want to remove this token from your history? 
+                  This will hide it from your view permanently without deleting the record.
+                </p>
+              </div>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setConfirmRemoveId(null)}
+                  className="flex-1 btn-secondary py-5 text-lg font-black rounded-2xl"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleRemove}
+                  disabled={removeLoading}
+                  className="flex-1 bg-red-500 text-white py-5 text-lg font-black shadow-xl shadow-red-500/20 rounded-2xl hover:bg-red-600 transition-all disabled:opacity-50"
+                >
+                  {removeLoading ? 'Removing...' : 'Remove'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

@@ -16,8 +16,10 @@ import {
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const Welcome = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState({ departments: [], userToken: null, completedToday: 0, avgConsultationTime: 12 });
@@ -64,9 +66,9 @@ const Welcome = () => {
   };
 
   const getStatusConfig = (position) => {
-    if (position === 0) return { label: 'Please Proceed to Room', color: 'bg-emerald-500', text: 'text-white' };
-    if (position <= 2) return { label: 'Almost Your Turn', color: 'bg-amber-500', text: 'text-white' };
-    return { label: 'Waiting in Queue', color: 'bg-slate-200', text: 'text-slate-600' };
+    if (position === 0) return { label: t('status.proceed'), color: 'bg-emerald-500', text: 'text-white' };
+    if (position <= 2) return { label: t('status.almost'), color: 'bg-amber-500', text: 'text-white' };
+    return { label: t('status.waiting'), color: 'bg-slate-200', text: 'text-slate-600' };
   };
 
   const status = data.userToken ? getStatusConfig(data.userToken.position) : null;
@@ -90,18 +92,18 @@ const Welcome = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         <div className="lg:col-span-6">
           <h1 className="text-5xl font-black text-slate-900 leading-tight tracking-tighter">
-            Welcome back, <br />
+            {t('dashboard.welcome')} <br />
             <span className="text-primary">{user?.name}</span>
           </h1>
           <p className="text-slate-600 mt-4 max-w-lg font-medium leading-relaxed text-lg">
-            Your patient dashboard is updated with real-time queue status and clinical availability.
+            {t('dashboard.subtitle')}
           </p>
         </div>
 
         <div className="lg:col-span-6 grid grid-cols-2 gap-8">
           {[
-            { icon: Users, label: 'Live Queue', value: totalWait, color: 'primary' },
-            { icon: CheckCircle, label: 'Completed Today', value: data.completedToday, color: 'emerald' },
+            { icon: Users, label: t('dashboard.liveQueue'), value: totalWait, color: 'primary' },
+            { icon: CheckCircle, label: t('dashboard.completedToday'), value: data.completedToday, color: 'emerald' },
           ].map((stat, i) => (
             <div
               key={i}
@@ -134,7 +136,7 @@ const Welcome = () => {
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
                     <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black tracking-widest uppercase inline-block">
-                      Current Active Token
+                      {t('token.currentSession')}
                     </div>
                     <div className={`${status.color} ${status.text} px-4 py-2 rounded-full text-[10px] font-black tracking-widest uppercase inline-block shadow-sm`}>
                       {status.label}
@@ -143,14 +145,14 @@ const Welcome = () => {
                   <h3 className="text-8xl font-black tracking-tighter leading-none">#{data.userToken.tokenNumber}</h3>
                   <div className="flex items-center gap-4 opacity-90 font-bold bg-white/10 p-4 rounded-2xl border border-white/10 w-fit backdrop-blur-sm">
                     <Activity size={24} />
-                    <span className="text-lg">{data.userToken.department}</span>
+                    <span className="text-lg">{t(`departments.${data.userToken.department}.name`)}</span>
                   </div>
                   <div className="space-y-2">
                     <p className="text-white font-black text-2xl tracking-tight">
-                      {data.userToken.position} patients ahead of you
+                      {t('status.patientsAhead', { count: data.userToken.position })}
                     </p>
                     <p className="text-white/60 text-sm font-bold italic flex items-center gap-2">
-                      <Info size={16} /> Please arrive 10–15 minutes before your turn
+                      <Info size={16} /> {t('token.selectDept')}
                     </p>
                   </div>
                 </div>
@@ -164,7 +166,7 @@ const Welcome = () => {
                   onClick={() => setIsRescheduling(true)}
                   className="bg-white text-primary px-12 py-5 rounded-2xl font-black text-base shadow-2xl hover:bg-slate-50 transition-all active:scale-95"
                 >
-                  Reschedule Token
+                  {t('token.reschedule')}
                 </button>
               </div>
             </motion.div>
@@ -174,15 +176,15 @@ const Welcome = () => {
                 <div className="h-32 w-32 rounded-xl bg-blue-100 flex items-center justify-center text-primary mb-8 group-hover:scale-110 transition-transform duration-500 border border-blue-200 p-4">
                   <Activity size={56} />
                 </div>
-                <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">Ready for a checkup?</h3>
+                <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">{t('token.readyForCheckup')}</h3>
                 <p className="text-slate-500 max-w-sm mx-auto text-xl leading-relaxed mb-12 font-medium">
-                  You don't have an active token for today. Select a clinical department to begin your journey.
+                  {t('token.noActiveToken')}
                 </p>
                 <button
                   onClick={() => navigate('/dashboard/generate')}
                   className="btn-primary px-16 py-6 shadow-lg hover:shadow-xl transition-all font-black rounded-2xl text-xl"
                 >
-                  Generate Token <ArrowRight size={28} className="ml-2" />
+                  {t('token.generate')} <ArrowRight size={28} className="ml-2" />
                 </button>
               </div>
             </div>
@@ -206,9 +208,9 @@ const Welcome = () => {
                 <button onClick={() => setIsRescheduling(false)} className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">✕</button>
               </div>
               <div className="space-y-3">
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight">Reschedule Token</h3>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">{t('token.reschedule')}</h3>
                 <p className="text-slate-500 text-base font-bold leading-relaxed">
-                  Your current token will be cancelled and replaced with a new token for the selected date.
+                  {t('token.selectDept')}
                 </p>
               </div>
               <div className="space-y-6">
@@ -245,9 +247,9 @@ const Welcome = () => {
 
             <div className="flex flex-wrap gap-8 items-center">
               {[
-                { label: 'Today Served', value: data.completedToday, icon: CheckCircle },
-                { label: 'System Load', value: totalWait > 20 ? 'High' : 'Optimal', icon: ShieldCheck, color: totalWait > 20 ? 'text-amber-500' : 'text-emerald-500' },
-                { label: 'Avg Wait', value: `${data.avgConsultationTime}m`, icon: Clock },
+                { label: t('dashboard.completedToday'), value: data.completedToday, icon: CheckCircle },
+                { label: t('dashboard.systemLoad'), value: totalWait > 20 ? t('status.high') : t('status.optimal'), icon: ShieldCheck, color: totalWait > 20 ? 'text-amber-500' : 'text-emerald-500' },
+                { label: t('dashboard.avgWait'), value: `${data.avgConsultationTime}m`, icon: Clock },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-5 px-8 py-6 bg-slate-50 rounded-3xl border border-slate-100 hover:border-slate-200 transition-colors">
                   <div className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-400">

@@ -1,0 +1,111 @@
+{
+  "sidebar": {
+    "generate": "Generate Token",
+    "live": "Live Queue",
+    "history": "Token History",
+    "prescriptions": "My Prescriptions",
+    "profile": "Profile Settings",
+    "faq": "Help & FAQ",
+    "hospitalStatus": "Hospital Status",
+    "operational": "System Operational"
+  },
+  "topbar": {
+    "searchPlaceholder": "Search patient records, tokens...",
+    "logout": "Logout Account",
+    "clinicalGuardian": "Clinical Guardian"
+  },
+  "navbar": {
+    "features": "Features",
+    "howItWorks": "How it Works",
+    "support": "Support",
+    "login": "Login",
+    "getStarted": "Get Started",
+    "dashboard": "Dashboard"
+  },
+  "token": {
+    "generate": "Generate My Token",
+    "estimatedArrival": "Estimated Arrival",
+    "noToken": "Token Awaiting",
+    "cancel": "Cancel Token",
+    "reschedule": "Reschedule Token",
+    "details": "Token Details",
+    "title": "Request Medical Token",
+    "instructions": "Instructions",
+    "step1": "Select your required department from the clinical grid above.",
+    "step2": "Confirm your selection and tap 'Generate My Token' to proceed.",
+    "step3": "Keep this display active or print your slip for real-time tracking.",
+    "arrivalNow": "Please arrive now or within 10 minutes",
+    "arrivalRange": "{{start}} – {{end}}",
+    "checkInTime": "Check-in Time",
+    "date": "Date",
+    "department": "Department",
+    "estWait": "Est. Wait",
+    "currentSession": "Current Session Token",
+    "printSlip": "Print Secure Slip",
+    "shareToken": "Share Digital Token",
+    "trackingActive": "Tracking established securely",
+    "selectDept": "Select a clinical department to join the live sanctuary flow.",
+    "readyForCheckup": "Ready for a checkup?",
+    "noActiveToken": "You don't have an active token for today. Select a clinical department to begin your journey."
+  },
+  "status": {
+    "waiting": "Waiting in Queue",
+    "almost": "Almost Your Turn",
+    "proceed": "Please Proceed to Room",
+    "patientsAhead": "{{count}} patients ahead of you",
+    "liveStatus": "Live Status",
+    "urgentAlert": "Urgent Alert",
+    "turnApproaching": "Your turn is approaching — {{count}} patients ahead!",
+    "optimal": "Optimal",
+    "moderate": "Moderate",
+    "high": "High"
+  },
+  "dashboard": {
+    "welcome": "Welcome back,",
+    "subtitle": "Your patient dashboard is updated with real-time queue status and clinical availability.",
+    "liveQueue": "Live Queue",
+    "completedToday": "Completed Today",
+    "active": "Active",
+    "clinicStatus": "Clinic Status Overview",
+    "monitoring": "Real-time Monitoring Active",
+    "avgWait": "Avg Wait",
+    "systemLoad": "System Load",
+    "needAssistance": "Need Assistance?",
+    "assistanceDesc": "Our clinical staff is available at the reception desk for any questions regarding your appointment or queue sequence.",
+    "viewFaq": "View FAQ Guide"
+  },
+  "departments": {
+    "General OPD": {
+      "name": "General OPD",
+      "desc": "Standard checkups"
+    },
+    "Cardiology": {
+      "name": "Cardiology",
+      "desc": "Heart health"
+    },
+    "Orthopaedics": {
+      "name": "Orthopaedics",
+      "desc": "Bone & joint care"
+    },
+    "Neurology": {
+      "name": "Neurology",
+      "desc": "Brain & nervous system"
+    },
+    "Paediatrics": {
+      "name": "Paediatrics",
+      "desc": "Children healthcare"
+    },
+    "Dermatology": {
+      "name": "Dermatology",
+      "desc": "Skin & hair"
+    },
+    "ENT": {
+      "name": "ENT",
+      "desc": "Ear, Nose & Throat"
+    },
+    "Ophthalmology": {
+      "name": "Ophthalmology",
+      "desc": "Eye & vision care"
+    }
+  }
+}

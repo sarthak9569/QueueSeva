@@ -1,16 +1,28 @@
 const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
+const authRoutes = require('./routes/authRoutes');
+const queueRoutes = require('./routes/queueRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+
 
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const { protect } = require('./middleware/authMiddleware');
 
-// Route files
-const authRoutes = require('./routes/authRoutes');
-const queueRoutes = require('./routes/queueRoutes');
-const reportRoutes = require('./routes/reportRoutes');
+const { 
+  generateToken, 
+  getLiveQueue, 
+  rescheduleToken, 
+  getTokenHistory, 
+  cancelToken, 
+  archiveToken,
+  startTokenCleanup
+} = require('./controllers/queueController');
+
+// Start background cleanup
+startTokenCleanup();
 
 dotenv.config();
 

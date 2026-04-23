@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   BarChart3,
   Activity,
@@ -12,13 +13,15 @@ import {
 } from 'lucide-react';
 
 const Sidebar = () => {
+  const { t } = useTranslation();
+  
   const menuItems = [
-    { icon: PlusCircle, label: 'Generate Token', path: '/dashboard/generate' },
-    { icon: Activity, label: 'Live Queue', path: '/dashboard/live' },
-    { icon: History, label: 'Token History', path: '/dashboard/history' },
-    { icon: FileText, label: 'My Prescriptions', path: '/dashboard/prescriptions' },
-    { icon: User, label: 'Profile Settings', path: '/dashboard/profile' },
-    { icon: HelpCircle, label: 'Help & FAQ', path: '/dashboard/faq' },
+    { icon: PlusCircle, label: t('sidebar.generate'), path: '/dashboard/generate' },
+    { icon: Activity, label: t('sidebar.live'), path: '/dashboard/live' },
+    { icon: History, label: t('sidebar.history'), path: '/dashboard/history' },
+    { icon: FileText, label: t('sidebar.prescriptions'), path: '/dashboard/prescriptions' },
+    { icon: User, label: t('sidebar.profile'), path: '/dashboard/profile' },
+    { icon: HelpCircle, label: t('sidebar.faq'), path: '/dashboard/faq' },
   ];
 
   return (
@@ -66,10 +69,10 @@ const Sidebar = () => {
 
       <div className="p-6">
         <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-          <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">Hospital Status</p>
+          <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">{t('sidebar.hospitalStatus')}</p>
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-bold text-slate-800 tracking-tight">System Operational</span>
+            <span className="text-sm font-bold text-slate-800 tracking-tight">{t('sidebar.operational')}</span>
           </div>
           <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">Latency: <span className="text-primary font-bold">24ms</span></p>
         </div>
